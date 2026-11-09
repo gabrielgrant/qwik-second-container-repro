@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Qwik rc.4: second-container event dispatch regression</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 2rem; max-width: 60rem; }
+      section { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+      .pass { color: #0a7a2f; font-weight: 600; }
+      .fail { color: #c0262d; font-weight: 600; }
+      pre { background: #f5f5f5; padding: 0.5rem; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>Qwik 2.0.0-rc.4: second client container loses synchronous event dispatch</h1>
+    <p>
+      The same component is rendered twice with <code>render()</code> from
+      <code>@qwik.dev/core</code>, into two sibling divs. The child button's
+      plain-function <code>onClick$</code> calls <code>event.stopPropagation()</code>,
+      which must prevent the parent's handler from running. Each run clicks the
+      child button once and records every handler call plus a native bubble
+      listener on the parent.
+    </p>
+    <p>
+      Expected log (and what 2.0.0-beta.36 produces for BOTH containers):
+      <code>["child-handler"]</code>. On 2.0.0-rc.4 the second container logs
+      <code>["parent-native-bubble", "child-handler", "parent-handler"]</code> —
+      handlers ran asynchronously after native propagation finished, so
+      stopPropagation (and conditional preventDefault) can no longer work.
+    </p>
+    <div id="app"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
